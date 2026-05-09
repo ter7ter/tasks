@@ -31,8 +31,25 @@ $hour_stats = Database::getInstance()->getVisitsByHour($select_url, $dateFrom, $
 if (count($hour_stats) < 2) {
     exit;
 }
-$hour_labels = array_column($hour_stats, 'hour_label');
-$hour_values = array_column($hour_stats, 'visit_count');;
+$min_time = strtotime($hour_stats[0]['hour_label']);
+$max_time = strtotime($hour_stats[count($hour_stats)-1]['hour_label']);
+
+//Заполняем данные для часов где не было посещений
+$current = $min_time;
+$hour_labels = [];
+$hour_values = [];
+$data_index = 0;
+while ($current <= $max_time) {
+    if (strtotime($hour_stats[$data_index]['hour_label']) == $current) {
+        $hour_labels[] = $hour_stats[$data_index]['hour_label'];
+        $hour_values[] = $hour_stats[$data_index]['visit_count'];
+        $data_index++;
+    } else {
+        $hour_labels[] = date('d.m H:i', $current);
+        $hour_values[] = 0;
+    }
+    $current = strtotime('+1 hour', $current);
+}
 
 $total_labels = count($hour_labels);
 $text_tick_interval = 1; // По умолчанию, если меток мало
